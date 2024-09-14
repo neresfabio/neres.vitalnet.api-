@@ -257,6 +257,70 @@ Armazena dados dos usuários que têm acesso ao sistema (pacientes, médicos, ad
 Essa estrutura atenderia tanto o site de teleconsulta quanto o app de gestão da ONG, com dados sincronizados e acessíveis pelas APIs compartilhadas.
 
 
+---
 
+Aqui está uma sugestão para um cenário ideal onde tanto o site quanto o app web consomem APIs RESTful compartilhadas. Vou dividir esse cenário em dois diagramas:
+
+### 1. **Fluxo de Autenticação e Consumo de APIs**
+   - **Site**: Focado no paciente, acessando o agendamento de consultas e histórico médico.
+   - **App Web**: Focado em médicos, administradores e gestores, consumindo APIs para consultas, prontuários e gerenciamento da ONG.
+
+### 2. **Diagrama de Fluxo de Dados**:
+   - Como ambos os projetos vão consumir as mesmas APIs, o diagrama de comunicação vai mostrar como cada ator (paciente, médico, administrador) interage com a API centralizada para diferentes propósitos.
+
+Aqui estão os diagramas no formato Mermaid:
+
+#### 1. **Diagrama de Autenticação e Consumo de APIs**
+```mermaid
+graph TD
+    User_Paciente -->|Login| API[(API Central)]
+    API -->|Token JWT| Site_Agenda[Portal de Agendamento]
+    API -->|Token JWT| Site_Consultas[Portal de Consultas]
+    Site_Agenda -->|Agendamento| API_Agendamento[(Agendamento)]
+    Site_Consultas -->|Inicia Consulta| API_Consultas[(Consulta Online)]
+    
+    User_Medico -->|Login| API
+    API -->|Token JWT| App_Consultas[Área Médica]
+    App_Consultas -->|Consulta| API_Consultas
+
+    User_Admin -->|Login| API
+    API -->|Token JWT| App_Admin[Área Administrativa]
+    App_Admin -->|Gestão ONG| API_Admin[(Gestão de Doações e Relatórios)]
+```
+
+#### 2. **Diagrama de Fluxo de Dados**
+```mermaid
+graph TD
+    subgraph "Aplicações"
+    Site_Agenda[Portal de Agendamento] 
+    Site_Consultas[Portal de Consultas] 
+    App_Consultas[Área Médica] 
+    App_Admin[Área Administrativa]
+    end
+    
+    API[(API Central)] -->|Autenticação| DB[(Banco de Dados)]
+    API -->|Consulta| API_Agendamento[(API de Agendamento)]
+    API -->|Consulta| API_Consultas[(API de Consultas)]
+    API -->|Gerenciamento| API_Admin[(API de Gestão Administrativa)]
+
+    Site_Agenda --> API_Agendamento
+    Site_Consultas --> API_Consultas
+    App_Consultas --> API_Consultas
+    App_Admin --> API_Admin
+```
+
+### **Explicação dos Diagramas:**
+1. **Diagrama de Autenticação e Consumo de APIs**:
+   - Quando um usuário (paciente, médico ou administrador) faz login, ele recebe um **token JWT** para acessar os recursos autorizados da API.
+   - Pacientes usam o site para **agendar consultas** e acessar a área de **consultas online**.
+   - Médicos e administradores utilizam o app para acessar prontuários, consultas, e funcionalidades de gestão da ONG.
+   - O **controle de permissões** garante que cada ator (paciente, médico, administrador) possa acessar apenas as APIs pertinentes.
+
+2. **Diagrama de Fluxo de Dados**:
+   - Ambas as aplicações (site e app web) acessam a **API centralizada**.
+   - A API centralizada faz consultas ao **banco de dados** e aos serviços específicos, como **agendamento de consultas**, **consulta online**, e **gestão administrativa**.
+   - O fluxo é reutilizado, otimizando o desenvolvimento e a manutenção do backend.
+
+Essa abordagem garante que tanto o site quanto o app web compartilhem a lógica central de negócios via API, mantendo a consistência e escalabilidade do sistema.
 
 
